@@ -9,7 +9,11 @@ const salt=10;
 
 const app=express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin:["http://localhost:5175"],
+  methods:["POST","GET"],
+  credentials: true
+}));
 app.use(cookieParser());
 
 //creating connection to the database
@@ -20,7 +24,27 @@ const db=mysql.createConnection({
   database:"signup"
 })
 
+//middleware
+const verifyUser=(req,res,next)=>{
+  const token=req.cookies.token;
+  if(!token){
+    return res.json({Error:'You are not authenticated'})
+  }else{
+    jwt.verify(token,"jwt-secret-key",(err,decoded)=>{
+      if(err){
+        return res.json({Error:'Invalid user token'})
+      }else{
+        req.name=decoded.name
+        next();
+      }
+    })
+  }
+}
+
 //routes
+app.get('/',verifyUser,(req,res)=>{
+  return res.json({Status:"success",name:req.name});
+})
 //register routes
 app.post('/register',(req,res)=>{
   const sql='INSERT INTO login(`name`,`email`,`password`) VALUES(?)';
@@ -53,6 +77,10 @@ app.post('/login',(req,res)=>{
       bcrypt.compare(req.body.password.toString(),result[0].password,(err,data)=>{
         if(err) return res.json({Error:err});
         if(data){
+          //generating tokken
+          const name=result[0].name;
+          const token=jwt.sign({name},'jwt-secret-key',{expiresIn:'1d'});
+          res.cookie('token',token);
           return res.json({Status:"success"});
         }else{
           return res.json({Error:"Invalid Credentials"});
