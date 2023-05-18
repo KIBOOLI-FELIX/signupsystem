@@ -21,6 +21,7 @@ const db=mysql.createConnection({
 })
 
 //routes
+//register routes
 app.post('/register',(req,res)=>{
   const sql='INSERT INTO login(`name`,`email`,`password`) VALUES(?)';
   bcrypt.hash(req.body.password.toString(),salt,(err,hash)=>{
@@ -40,7 +41,28 @@ app.post('/register',(req,res)=>{
   })
  
 })
+//login route
+app.post('/login',(req,res)=>{
+  const userEmail=[
+    req.body.email,
+  ]
+  const sql='SELECT * FROM login WHERE email=?';
+  db.query(sql,userEmail,(err,result)=>{
+    if(err)return res.json(err);
+    if(result.length>0){
+      bcrypt.compare(req.body.password.toString(),result[0].password,(err,data)=>{
+        if(err) return res.json({Error:err});
+        if(data){
+          return res.json({Status:"success"});
+        }
+       
+      })
+    }else{
+      return res.json({Error:"User doesn't exist"})
+    }
+  })
 
+})
 app.listen(port,()=>{
   console.log(`Server started on port ${port}`);
 })
