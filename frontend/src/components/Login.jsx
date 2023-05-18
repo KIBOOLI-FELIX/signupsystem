@@ -7,6 +7,8 @@ const Login=()=>{
     password:''
   })
 
+  const [message,setMessage]=React.useState('')
+
   const handleOnchange=(event)=>{
     setValues({...values,[event.target.name]:event.target.value})
   }
@@ -20,9 +22,8 @@ const Login=()=>{
 
       if(res.data.Status==="success"){
         navigate('/home')
-      }
-      if(res.data.Status==="failed"){
-        alert("Wrong Credentials");
+      }else{
+        setMessage(res.data.Error);
       }
     })
     .catch((err)=>console.log(err))
@@ -31,7 +32,10 @@ const Login=()=>{
   return(
     <div className="d-flex justify-content-center align-items-center bg-primary vh-100">
       <div className="bg-white p-3 rounded w-25">
-        <h2>Login </h2>
+        <h2 className='text-center'>Login </h2>
+        <div className='Error bg-danger'>
+          <p className='text-center text-white'>{message&& message}</p>
+        </div>
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <label htmlFor='email'><strong>Email</strong></label>

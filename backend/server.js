@@ -54,6 +54,8 @@ app.post('/login',(req,res)=>{
         if(err) return res.json({Error:err});
         if(data){
           return res.json({Status:"success"});
+        }else{
+          return res.json({Error:"Invalid Credentials"});
         }
        
       })
